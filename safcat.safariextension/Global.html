@@ -2,8 +2,8 @@
 <script type="text/javascript">
 
 /**
- * Reacts to the 'command' event sent by Safari. This happens when the extension    
- * toolbar button is pressed. This function handles all the heavywork - asking 
+ * Reacts to the 'command' event sent by Safari. This happens when the extension
+ * toolbar button is pressed. This function handles all the heavywork - asking
  * gfycat to fetch a URL, reading returned JSON and taking user to the gfycat page.
  * @param 'command' event from the event listener
  */
@@ -25,7 +25,7 @@ function gfycatConvert(event) {
     // gfycat sends undefined gfyname if there was some problem uploading/finding gif
     if (gfycatJSONParsed.gfyname == undefined) {
         console.log("Blah");
-        window.alert("gfycat URL is undefined. The gif was not uploaded for some reason. Do you have a gif open on this page? It could also be a problem on gfycat's end.");
+        window.alert("The gif was not uploaded for some reason. Do you have a gif open on this page? It could also be a problem on gfycat's end.");
         return;
     }
 
@@ -53,6 +53,7 @@ function makeID() {
  * Gets JSON document from a URL. Credit to Mauricio Gracia on Stack Overflow.
  * Link to answer: http://stackoverflow.com/a/24294250/2005759
  * @return JSON response
+ * This function is blocking the user's input. We need to implement an asynchronous call
  */
 function getJSON(url) {
     var res = '';
@@ -68,21 +69,21 @@ function getJSON(url) {
     return res;
 }
 
-// This function is currently never hit. I want to make it only enable the button when there is a gif open in the activeTab. I have not given it much thought right now. Perhaps someone can help.
-function validateGif() {
+// This functions is called whenever a new tab is loaded and checks for 'gif' substring in the url of the activeTab
+function validateGif(event) {
     var isGif = 0;
     var currURL = safari.application.activeBrowserWindow.activeTab.url;
-    var lastFourChars = currURL.slice(currURL.length - 4, currURL.length);
-    
-    console.log(lastFourChars);
 
-    if (lastFourChars == ".gif") 
-        isGif = 1;
-
+    // disable the extension if its url is empty because of new tab or something
+    if (currURL != "") {
+        // check if the URL contains gif somewhere in it and enable the button if it does
+        if (currURL.indexOf("gif") > -1)
+            isGif = 1
+    }
     event.target.disabled = !isGif;
 }
 
 safari.application.addEventListener("command", gfycatConvert, false);
-// safari.application.addEventListener("validate", validateGif, false);
+safari.application.addEventListener("validate", validateGif, false);
 
 </script>
